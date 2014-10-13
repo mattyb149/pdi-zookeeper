@@ -1,10 +1,10 @@
 package ninja.mattburgess.pentaho.di.zookeeper.zooviewer;
 
 import net.isammoc.zooviewer.App;
+import ninja.mattburgess.pentaho.di.zookeeper.ZooKeeperUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.gui.SpoonFactory;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -14,11 +14,8 @@ import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.dom.Document;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
-import java.util.Properties;
 import java.util.ResourceBundle;
 
 /**
@@ -28,12 +25,6 @@ import java.util.ResourceBundle;
 @SpoonPluginCategories( { "spoon" } )
 public class ZooviewerSpoonPlugin extends AbstractXulEventHandler
     implements ISpoonMenuController, SpoonPluginInterface, SpoonLifecycleListener {
-
-  public static final String CONFIG_FILENAME = "config.properties";
-
-  public static final String DEFAULT_ZOOKEEPER = "localhost:2181";
-
-  public static final String ZOOKEEPER_CONFIG_PROPERTY = "zk";
 
   ResourceBundle bundle = new ResourceBundle() {
     @Override
@@ -91,34 +82,8 @@ public class ZooviewerSpoonPlugin extends AbstractXulEventHandler
   public void showZooviewer() {
     final Spoon spoon = Spoon.getInstance();
 
-    String zookeeperList = DEFAULT_ZOOKEEPER;
 
-    // Read in config properties
-    File pluginFolderFile = new File(ZooviewerSpoonPlugin.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParentFile();
-
-    if(pluginFolderFile != null && pluginFolderFile.exists()) {
-      File configFile = new File(pluginFolderFile, CONFIG_FILENAME);
-      if(configFile.exists()) {
-        try {
-          Properties props = new Properties(System.getProperties());
-          String zkConfigProp = props.getProperty( ZOOKEEPER_CONFIG_PROPERTY );
-          if(!Const.isEmpty( zkConfigProp )) {
-            zookeeperList = zkConfigProp;
-          }
-          props.load( new FileInputStream( configFile ) );
-          zkConfigProp = props.getProperty( ZOOKEEPER_CONFIG_PROPERTY );
-          if(!Const.isEmpty( zkConfigProp )) {
-            zookeeperList = zkConfigProp;
-          }
-
-        }
-        catch(Exception e) {
-          // Do nothing, default already set
-        }
-      }
-    }
-
-    final String zkList = zookeeperList;
+    final String zkList = ZooKeeperUtils.getZooKeeperConfig();
     IRunnableWithProgress op = new IRunnableWithProgress()
     {
       public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException

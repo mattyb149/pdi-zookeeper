@@ -82,7 +82,6 @@ task plugin(dependsOn:jar, type: Zip) {
   def leftovers = compileDeps - providedDeps
     into("${project.name}/lib") {
     from leftovers
-    from fileTree(dir: 'package-res')
   }
 }
 
