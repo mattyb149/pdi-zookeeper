@@ -23,6 +23,8 @@ public class ZooKeeperUtils {
 
   public static final int DEFAULT_ZK_CONNECT_TIMEOUT_MSEC = 5000;
 
+  public static String config = "";
+
   public static String getZooKeeperConfig() {
     String zookeeperList = DEFAULT_ZOOKEEPER;
 
@@ -54,6 +56,7 @@ public class ZooKeeperUtils {
         }
       }
     }
+    config = zookeeperList;
     return zookeeperList;
   }
 
@@ -67,6 +70,16 @@ public class ZooKeeperUtils {
 
   public static ZooKeeper connectToZooKeeper( String config, int timeoutMsec, Watcher watcher ) throws IOException {
     return new ZooKeeper( config, timeoutMsec, watcher );
+  }
+
+  public static ZooKeeper reconnect() throws IOException {
+    if ( config == null ) {
+      getZooKeeperConfig();
+    }
+    if ( config != null ) {
+      return connectToZooKeeper( config );
+    }
+    throw new IOException( "Couldn't reconnect to ZooKeeper quorum" );
   }
 
   private static Watcher noOpWatcher = new Watcher() {

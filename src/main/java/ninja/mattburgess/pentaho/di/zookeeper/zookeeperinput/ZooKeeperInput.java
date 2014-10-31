@@ -112,7 +112,7 @@ public class ZooKeeperInput extends BaseStep implements StepInterface {
 
     if ( checkFeedback( getLinesRead() ) ) {
       if ( log.isBasic() ) {
-        logBasic( BaseMessages.getString( PKG, "ZookeeperInput.Log.LineNumber" ) + getLinesRead() );
+        logBasic( BaseMessages.getString( PKG, "ZooKeeperInput.Log.LineNumber" ) + getLinesRead() );
       }
     }
 

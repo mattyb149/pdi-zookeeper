@@ -9,12 +9,15 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
@@ -35,7 +38,7 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
   private Label wlCreatePath;
   private Button wCreatePath;
   private FormData fdlCreatePath, fdCreatePath;
-  
+
   private Composite wFieldsComp;
   private Label wlFields;
   private TableView wFields;
@@ -94,7 +97,7 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
     Control lastControl = wStepname;
 
     wlCreatePath = new Label( shell, SWT.RIGHT );
-    wlCreatePath.setText( BaseMessages.getString( PKG, "ZooKeeperOutputDialog.Unspecified.Label" ) );
+    wlCreatePath.setText( BaseMessages.getString( PKG, "ZooKeeperOutputDialog.CreatePath.Label" ) );
     props.setLook( wlCreatePath );
     fdlCreatePath = new FormData();
     fdlCreatePath.left = new FormAttachment( 0, 0 );
@@ -111,6 +114,11 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
     wCreatePath.setLayoutData( fdCreatePath );
 
     lastControl = wCreatePath;
+    wCreatePath.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        meta.setChanged();
+      }
+    } );
 
     ColumnInfo[] colinf = new ColumnInfo[]
       {
@@ -129,7 +137,7 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
           true )
       };
 
-    
+
     // Fields
     wFieldsComp = new Composite( shell, SWT.NONE );
     props.setLook( wFieldsComp );
@@ -149,7 +157,7 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
     wlFields.setLayoutData( fdlFields );
 
     wFields =
-      new TableView( transMeta, shell, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, 3, lsMod,
+      new TableView( transMeta, shell, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, 1, lsMod,
         props );
 
     fdFields = new FormData();
@@ -164,8 +172,11 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
     wOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
     wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
+    wGet = new Button( shell, SWT.PUSH );
+    wGet.setText( BaseMessages.getString( PKG, "System.Button.GetFields" ) );
+    wGet.setEnabled( true );
 
-    setButtonPositions( new Button[]{ wOK, wCancel }, margin, wFields );
+    setButtonPositions( new Button[]{ wOK, wGet, wCancel }, margin, wFields );
 
     // Add listeners
     lsCancel = new Listener() {
@@ -178,9 +189,15 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
         ok();
       }
     };
+    lsGet = new Listener() {
+      public void handleEvent( Event e ) {
+        getFields();
+      }
+    };
 
     wCancel.addListener( SWT.Selection, lsCancel );
     wOK.addListener( SWT.Selection, lsOK );
+    wGet.addListener( SWT.Selection, lsGet );
 
     lsDef = new SelectionAdapter() {
       public void widgetDefaultSelected( SelectionEvent e ) {
@@ -212,6 +229,19 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
     return stepname;
   }
 
+  private void getFields() {
+    try {
+      RowMetaInterface r = transMeta.getPrevStepFields( stepname );
+      if ( r != null && !r.isEmpty() ) {
+        BaseStepDialog.getFieldsFromPrevious( r, wFields, 1, new int[]{ 1 }, new int[]{ }, -1, -1, null );
+      }
+    } catch ( KettleException ke ) {
+      new ErrorDialog(
+        shell, BaseMessages.getString( PKG, "ZooKeeperOutputDialog.FailedToGetFields.DialogTitle" ), BaseMessages
+        .getString( PKG, "ZooKeeperOutputDialog.FailedToGetFields.DialogMessage" ), ke );
+    }
+  }
+
   /**
    * Copy information from the meta-data input to the dialog fields.
    */
@@ -219,8 +249,10 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
 
     int i = 0;
     wFields.table.clearAll();
+    wCreatePath.setSelection( meta.isCreatePaths() );
     List<ZooKeeperField> fields = meta.getFields();
     if ( fields != null ) {
+      wFields.table.setItemCount( fields.size() );
       for ( ZooKeeperField field : fields ) {
 
         TableItem item = wFields.table.getItem( i );
@@ -228,7 +260,7 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
 
         item.setText( col++, field.getFieldName() );
         item.setText( col++, field.getPath() );
-        item.setText( col++, field.getType().getTypeDesc());
+        item.setText( col++, field.getType().getTypeDesc() );
         i++;
       }
     }
@@ -241,8 +273,6 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
   }
 
   private void cancel() {
-    stepname = null;
-    meta.setChanged( changed );
     dispose();
   }
 
@@ -252,6 +282,9 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
     }
 
     stepname = wStepname.getText(); // return value
+
+    meta.setCreatePaths( wCreatePath.getSelection() );
+
     int nrFields = wFields.nrNonEmpty();
 
     List<ZooKeeperField> fields = new ArrayList<ZooKeeperField>( nrFields );
@@ -268,8 +301,6 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
       }
     }
     meta.setFields( fields );
-
     dispose();
   }
-
 }
