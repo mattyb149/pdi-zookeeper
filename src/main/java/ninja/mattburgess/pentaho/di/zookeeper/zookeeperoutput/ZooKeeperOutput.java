@@ -91,7 +91,7 @@ public class ZooKeeperOutput extends BaseStep implements StepInterface {
       List<ZooKeeperField> fields = meta.getFields();
       if ( fields != null ) {
         for ( ZooKeeperField field : fields ) {
-          String fieldName = field.getFieldName();
+          String fieldName = environmentSubstitute( field.getFieldName() );
           int rowIndex = outputRowMeta.indexOfValue( fieldName );
           if ( rowIndex == -1 ) {
             throw new KettleException( "Couldn't find field " + fieldName + " in row!" );
@@ -100,13 +100,23 @@ public class ZooKeeperOutput extends BaseStep implements StepInterface {
           String valueString = type.getString( r[rowIndex] );
           if ( valueString != null ) {
             byte[] bytes = valueString.getBytes();
-            if ( zk.exists( field.getPath(), false ) == null && meta.isCreatePaths() ) {
+            // Perform the following substitutions in order:
+            //   1) environmentSubstitute on path: This is used to inject a field variable via a regular variable
+            //   2) fieldSubstitute: This is used to get the value of a particular field for the current row
+            //   3) environmentSubstitute: This is used in case the field value has an environment variable inside
+            String resolvedPath = environmentSubstitute(
+              fieldSubstitute(
+                environmentSubstitute( field.getPath() ),
+                outputRowMeta, r
+              )
+            );
+            if ( zk.exists( resolvedPath, false ) == null && meta.isCreatePaths() ) {
               // Need to recursively create a path. Could use Curator but I hear it's slow
-              createPath( field.getPath() );
+              createPath( resolvedPath );
 
             }
 
-            zk.setData( field.getPath(), bytes, -1 );
+            zk.setData( resolvedPath, bytes, -1 );
 
           } else {
             throw new KettleException( "Couldn't represent value in field " + fieldName + " as binary for ZK storage!" );

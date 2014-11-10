@@ -125,7 +125,7 @@ public class ZooKeeperInputDialog extends BaseStepDialog implements StepDialogIn
     wlFields.setLayoutData( fdlFields );
 
     wFields =
-      new TableView( transMeta, shell, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, 1, lsMod,
+      new TableView( transMeta, shell, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, 5, lsMod,
         props );
 
     fdFields = new FormData();
