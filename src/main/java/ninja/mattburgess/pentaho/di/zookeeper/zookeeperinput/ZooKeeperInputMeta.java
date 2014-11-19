@@ -2,7 +2,7 @@ package ninja.mattburgess.pentaho.di.zookeeper.zookeeperinput;
 
 import ninja.mattburgess.pentaho.di.zookeeper.ZooKeeperField;
 import ninja.mattburgess.pentaho.di.zookeeper.ZooKeeperStepData;
-import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.bigdata.ShimDependentStep;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Created by mburgess on 10/3/14.
  */
-@Step( id = "ZookeeperInput",
+@ShimDependentStep( id = "ZookeeperInput",
   image = "zookeeper-input.png",
   name = "Zookeeper Input",
   description = "Reads configuration information from a Zookeeper cluster",
@@ -124,6 +124,13 @@ public class ZooKeeperInputMeta extends BaseStepMeta implements StepMetaInterfac
 
   public String getXML() {
     StringBuffer retval = new StringBuffer( 300 );
+    try {
+      Class.forName( "org.apache.pig.tools.streams.StreamGenerator");
+      System.out.println("WooHoo, found Pig's StreamGenerator class!");
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
 
     retval.append( "    <fields>" );
     if ( fields != null ) {
