@@ -32,7 +32,6 @@ public class ZooKeeperInputDialog extends BaseStepDialog implements StepDialogIn
 
   private ZooKeeperInputMeta meta;
 
-  private Composite wFieldsComp;
   private Label wlFields;
   private TableView wFields;
   private FormData fdlFields, fdFields;
@@ -106,15 +105,7 @@ public class ZooKeeperInputDialog extends BaseStepDialog implements StepDialogIn
 
     Control lastControl = wStepname;
 
-    // Servers
-    wFieldsComp = new Composite( shell, SWT.NONE );
-    props.setLook( wFieldsComp );
-
-    FormLayout fileLayout = new FormLayout();
-    fileLayout.marginWidth = 3;
-    fileLayout.marginHeight = 3;
-    wFieldsComp.setLayout( fileLayout );
-
+    // Fields
     wlFields = new Label( shell, SWT.RIGHT );
     wlFields.setText( BaseMessages.getString( PKG, "ZooKeeperInputDialog.Input.Label" ) );
     props.setLook( wlFields );
@@ -194,7 +185,6 @@ public class ZooKeeperInputDialog extends BaseStepDialog implements StepDialogIn
   public void getData() {
 
     int i = 0;
-    wFields.table.clearAll();
     List<ZooKeeperField> fields = meta.getFields();
     if ( fields != null ) {
       wFields.table.setItemCount( fields.size() );
@@ -210,6 +200,7 @@ public class ZooKeeperInputDialog extends BaseStepDialog implements StepDialogIn
       }
     }
 
+    wFields.removeEmptyRows();
     wFields.setRowNums();
     wFields.optWidth( true );
 

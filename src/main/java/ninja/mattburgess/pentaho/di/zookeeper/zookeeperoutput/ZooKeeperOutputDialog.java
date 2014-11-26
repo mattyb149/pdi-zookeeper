@@ -39,7 +39,6 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
   private Button wCreatePath;
   private FormData fdlCreatePath, fdCreatePath;
 
-  private Composite wFieldsComp;
   private Label wlFields;
   private TableView wFields;
   private FormData fdlFields, fdFields;
@@ -139,14 +138,6 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
 
 
     // Fields
-    wFieldsComp = new Composite( shell, SWT.NONE );
-    props.setLook( wFieldsComp );
-
-    FormLayout fileLayout = new FormLayout();
-    fileLayout.marginWidth = 3;
-    fileLayout.marginHeight = 3;
-    wFieldsComp.setLayout( fileLayout );
-
     wlFields = new Label( shell, SWT.RIGHT );
     wlFields.setText( BaseMessages.getString( PKG, "ZooKeeperOutputDialog.Output.Label" ) );
     props.setLook( wlFields );
@@ -164,7 +155,6 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
     fdFields.left = new FormAttachment( middle / 4, 0 );
     fdFields.top = new FormAttachment( lastControl, margin * 2 );
     fdFields.right = new FormAttachment( 100, 0 );
-    // fdFields.bottom = new FormAttachment( 100, 0 );
     wFields.setLayoutData( fdFields );
 
     // Some buttons
@@ -248,7 +238,6 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
   public void getData() {
 
     int i = 0;
-    wFields.table.clearAll();
     wCreatePath.setSelection( meta.isCreatePaths() );
     List<ZooKeeperField> fields = meta.getFields();
     if ( fields != null ) {
@@ -265,6 +254,7 @@ public class ZooKeeperOutputDialog extends BaseStepDialog implements StepDialogI
       }
     }
 
+    wFields.removeEmptyRows();
     wFields.setRowNums();
     wFields.optWidth( true );
 

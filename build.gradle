@@ -6,7 +6,7 @@ apply plugin: 'idea'
 // ensure maximum supportability and compatibility for your plugin.
 sourceCompatibility = JavaVersion.VERSION_1_6
 
-version = '1.1'
+version = '1.1.1'
 
 // External property (deprecated in Gradle 2.x) for Kettle and metastore versions. If you wish to 
 // put your plugin in the Marketplace against the current revision (say, 5.0.x), use the latest
