@@ -1,4 +1,4 @@
-pdi-zookeeper
+pdi-zookeeper ![Travis build](https://travis-ci.org/mattyb149/pdi-zookeeper.svg?branch=master)
 =============
 
 Description
